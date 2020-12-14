@@ -28,7 +28,6 @@ def ProcessFile(inputFilePath: str, outputFilePath: str):
                     print(f'[{currentTime}] Processing row {n}')
                 translatedText = TranslateCnToEn(line)
                 outputFile.write(translatedText + '\n')
-    print(inputFilePath)
 
 
 def TranslateCnToEn(textCn: str) -> str:
