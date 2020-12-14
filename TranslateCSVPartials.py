@@ -1,15 +1,17 @@
 import os
+import random
 import time
 # https://pypi.org/project/google-trans-new/
 from google_trans_new import google_translator
 
 
-# inputFileRange = [*range(1, 41)]  # all files from 1-40
-inputFileRange = [1,2]  # specific files
+inputFileRange = [*range(1, 41)]  # all files from 1-40
+# inputFileRange = [1,2]  # specific files
 inputFileBaseName = 'shanghai-ccp-member'
 inputDir = f'Data/UntranslatedPartials'.replace('/', os.path.sep)
 outputDir = f'Data/TranslatedPartials'.replace('/', os.path.sep)
-
+maxRetries = 5
+urlSuffixes = ['us','com','ca']
 
 def GetTimeString() -> str:
     t = time.localtime()
@@ -30,10 +32,25 @@ def ProcessFile(inputFilePath: str, outputFilePath: str):
                 outputFile.write(translatedText + '\n')
 
 
-def TranslateCnToEn(textCn: str) -> str:
+def TranslateCnToEn(textCn: str, retries: int = 0) -> str:
     # ref https://github.com/lushan88a/google_trans_new
-    translator = google_translator(url_suffix='com')
-    textEn = translator.translate(textCn.strip(), lang_src='zh', lang_tgt='en')
+    urlSuffix = random.choice(urlSuffixes)
+    translator = google_translator(url_suffix=urlSuffix)
+    textEn = None
+    try:
+        textEn = translator.translate(textCn.strip(), lang_src='zh', lang_tgt='en')
+    except Exception as exc:
+        retries += 1
+        currentTime = GetTimeString()
+        if retries > maxRetries:
+            print(f'[{currentTime}] Error encountered trying to translate {textCn.strip()}')
+            print(exc)
+            exit()
+
+        print(f'[{currentTime}] Encountered Error.  Attempting Retry.')
+        print(exc)
+        time.sleep(5)
+        textEn = TranslateCnToEn(textCn, retries)
     return textEn
 
 
